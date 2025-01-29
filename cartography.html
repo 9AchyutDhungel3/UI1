@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <style>
+        body {
+            background: url("cartography.webp");
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .cartography-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: rgba(231, 231, 231, 0.945);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .cartography-map canvas {
+            width: 1000px;
+            height: 700px;
+        }
+        .export-options form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        select, input[type="submit"] {
+            width: 200px;
+            padding: 8px;
+            text-align: center;
+            color: cornflowerblue;
+        }
+        .export-options {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .export-options select, 
+        .export-options button {
+            display: block;
+            margin: 10px 0;
+            padding: 8px;
+            width: 150px;
+        }
+        </style>
+        <title>Cartography</title>
+    </head>
+    <body>
+        <div class="cartography-content">
+            <div class="cartography-map">
+                <canvas width="800" height="600" id="mapCanvas"></canvas>
+            </div>
+            <div class="export-options">
+                <select id="exportFormat">
+                    <option value="png">PNG</option>
+                    <option value="jpeg">JPEG</option>
+                    <option value="pdf">PDF</option>
+                </select>
+                <button onclick="exportMap()">Export Map</button>
+            </div>
+            <script src="https://d3js.org/d3.v7.min.js"></script>
+            <script>
+            function exportMap() {
+            const format = document.getElementById("exportFormat").value;
+            const filename = `map_export.${format}`;
+            
+            switch(format) {
+                case 'png':
+                case 'jpeg':
+                    exportImage(format, filename);
+                    break;
+                case 'pdf':
+                    exportPDF(filename);
+                    break;
+            }
+        }
+        // Initialize canvas and D3 rendering context
+        /*const canvas = d3.select("#mapCanvas")
+            .attr("width", 800)
+            .attr("height", 600)
+            .node();
+            
+        const context = canvas.getContext("2d");
+
+        // Your D3 rendering logic here (example circle)
+        context.beginPath();
+        context.arc(400, 300, 50, 0, 2 * Math.PI);
+        context.fillStyle = "steelblue";
+        context.fill();*/
+        
+
+        function exportImage(format, filename) {
+            const quality = format === 'jpeg' ? 0.92 : 1; // JPEG quality (0-1)
+            const dataURL = canvas.toDataURL(`image/${format}`, quality);
+            
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataURL;
+            link.click();
+        }
+
+        function exportPDF(filename) {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('landscape');
+            
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(filename);
+        }
+            </script>
+        </div>
+    </body>
+</html>
